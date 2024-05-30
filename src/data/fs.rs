@@ -9,7 +9,6 @@ pub fn save(bookmarks: &[Bookmark], filename: Option<&str>) -> Result<(), String
     for b in bookmarks {
         writeln!(file, "{}", b.serialize()).map_err(|e| e.to_string())?;
     }
-    println!("saved {} bookmarks", bookmarks.len());
     Ok(())
 }
 
@@ -23,6 +22,5 @@ pub fn load(filename: Option<&str>) -> Result<Vec<Bookmark>, String> {
             bookmarks.push(b);
         }
     }
-    println!("loaded {} bookmarks", bookmarks.len());
     Ok(bookmarks)
 }

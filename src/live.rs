@@ -1,12 +1,14 @@
 pub mod builtin;
 
+use std::path::Path;
+
 use rustyline::{error::ReadlineError, DefaultEditor};
-use slowmark::data::Bookmark;
+use slowmark::data::{fs::load, Bookmark};
 
 pub struct Env {
     pub error: Result<(), String>,
     pub builtin: Vec<Command>,
-    pub bookmarks: Vec<Bookmark>
+    pub bookmarks: Vec<Bookmark>,
 }
 
 impl Env {
@@ -23,8 +25,19 @@ impl Env {
         self
     }
 
-    pub fn motd() {
-        println!("welcome to slowmark: live");
+    pub fn motd(&self) {
+        println!(
+            r#"     s
+    s s
+    s    
+     s   lowmark {}
+      s   - bookmarks: {}
+    s s   - cmds: {}
+     s"#,
+            env!("CARGO_PKG_VERSION"),
+            self.bookmarks.len(),
+            self.builtin.len()
+        );
         println!("type 'help' for more information");
     }
 
@@ -42,18 +55,31 @@ impl Env {
 
     pub fn handle(&mut self, line: String) -> Result<(), String> {
         let name = Context::parse(&line).ok_or(format!("empty command"))?.0;
-        let cmd = self.find_command(name).ok_or(format!("unknown command: {name}"))?;
+        let cmd = self
+            .find_command(name)
+            .ok_or(format!("unknown command: {name}"))?;
         (cmd.action)(&mut Context::new(self, line))
     }
 
+    pub fn startup(&mut self) {
+        self.autoload();
+        self.motd();
+    }
+
+    pub fn autoload(&mut self) {
+        if Path::new("bookmarks.qm").exists() {
+            self.bookmarks = load(Some("bookmarks.qm")).expect("couldn't autoload bookmarks.qm");
+        }
+    }
+
     pub fn run(&mut self, editor: &mut DefaultEditor) {
-        Self::motd();
+        self.startup();
 
         loop {
             if let Err(ref e) = self.error {
                 eprintln!("error: {}", e);
             }
-            let result  = self.handle(self.take(editor));
+            let result = self.handle(self.take(editor));
             self.error = result;
         }
     }
@@ -64,15 +90,15 @@ impl Env {
             Err(ReadlineError::Interrupted) => {
                 eprintln!("CTRL-C");
                 std::process::exit(0);
-            },
+            }
             Err(ReadlineError::Eof) => {
                 eprintln!("CTRL-D");
                 std::process::exit(0);
-            },
+            }
             Err(err) => {
                 eprintln!("Error: {:?}", err);
                 std::process::exit(1);
-            },
+            }
         }
     }
 }
