@@ -1,3 +1,5 @@
+pub mod fs;
+
 use colored::Colorize;
 
 pub struct Bookmark {
@@ -7,6 +9,14 @@ pub struct Bookmark {
 }
 
 impl Bookmark {
+    pub fn new(name: String, url: String, tags: Vec<String>) -> Self {
+        Bookmark {
+            name,
+            url,
+            tags
+        }
+    }
+
     pub fn deserialize(line: &str) -> Option<Bookmark> {
         if line.is_empty() || line.starts_with('#') {
             return None;

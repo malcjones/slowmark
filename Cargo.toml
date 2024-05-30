@@ -5,4 +5,5 @@ edition = "2021"
 
 [dependencies]
 colored = "2.1.0"
+lazy_static = "1.4.0"
 rustyline = "14.0.0"

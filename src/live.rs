@@ -1,3 +1,5 @@
+pub mod builtin;
+
 use rustyline::{error::ReadlineError, DefaultEditor};
 use slowmark::data::Bookmark;
 
@@ -14,6 +16,11 @@ impl Env {
             builtin: Vec::new(),
             bookmarks: Vec::new(),
         }
+    }
+
+    pub fn with_builtin(mut self) -> Self {
+        self.builtin = builtin::cmds();
+        self
     }
 
     pub fn motd() {
